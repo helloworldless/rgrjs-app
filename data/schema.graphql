@@ -1,0 +1,9 @@
+type Links {
+  _id: String
+  title: String
+  url: String
+}
+
+type Query {
+  links: [Links]
+}
