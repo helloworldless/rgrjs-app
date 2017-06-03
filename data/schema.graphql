@@ -1,9 +1,64 @@
-type Links {
-  _id: String
+input CreateLinkInput {
+  title: String!
+  url: String!
+  clientMutationId: String
+}
+
+type CreateLinkPayload {
+  linkEdge: LinkEdge
+  store: Store
+  clientMutationId: String
+}
+
+type Link {
+  id: ID!
   title: String
   url: String
 }
 
+# A connection to a list of items.
+type LinkConnection {
+  # Information to aid in pagination.
+  pageInfo: PageInfo!
+
+  # A list of edges.
+  edges: [LinkEdge]
+}
+
+# An edge in a connection.
+type LinkEdge {
+  # The item at the end of the edge
+  node: Link
+
+  # A cursor for use in pagination
+  cursor: String!
+}
+
+type Mutation {
+  createLink(input: CreateLinkInput!): CreateLinkPayload
+}
+
+# Information about pagination in a connection.
+type PageInfo {
+  # When paginating forwards, are there more items?
+  hasNextPage: Boolean!
+
+  # When paginating backwards, are there more items?
+  hasPreviousPage: Boolean!
+
+  # When paginating backwards, the cursor to continue.
+  startCursor: String
+
+  # When paginating forwards, the cursor to continue.
+  endCursor: String
+}
+
 type Query {
-  links: [Links]
+  store: Store
+}
+
+type Store {
+  # The ID of an object
+  id: ID!
+  linkConnection(after: String, first: Int, before: String, last: Int): LinkConnection
 }

@@ -4,7 +4,7 @@
   "description": "React + GraphQL + Relay based on Pluralsight course",
   "main": "server.js",
   "scripts": {
-    "start": "nodemon server.js --exec babel-node --ignore 'data/*' --presets react,es2015,stage-0",
+    "start": "nodemon server.js --exec babel-node --ignore 'data/schema.json' --presets react,es2015,stage-0",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "David Good",
@@ -21,12 +21,13 @@
     "express-graphql": "^0.6.5",
     "flux": "^3.1.2",
     "graphql": "^0.9.6",
+    "graphql-relay": "^0.5.2",
     "jquery": "^3.2.1",
     "kerberos": "0.0.23",
     "mongodb": "^2.2.26",
     "react": "^15.5.4",
     "react-dom": "^15.5.4",
-    "react-relay": "^1.0.0"
+    "react-relay": "0.x"
   },
   "devDependencies": {
     "webpack": "^2.5.1"
