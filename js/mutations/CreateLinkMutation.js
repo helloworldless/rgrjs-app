@@ -19,7 +19,7 @@ class CreateLinkMutation extends Relay.Mutation {
     `;
   }
   getConfigs() {
-    return[{
+    return [{
       type: 'RANGE_ADD',
       parentName: 'store',
       parentID: this.props.store.id,
@@ -29,6 +29,17 @@ class CreateLinkMutation extends Relay.Mutation {
         '':'append' 
       },
     }]
+  }
+
+  getOptimisticResponse() {
+    return {
+      linkEdge: {
+        node: {
+          title: this.props.title,
+          url: this.props.url
+        }
+      }
+    }
   }
 }
 

@@ -10,6 +10,8 @@ import {
 
 import {
   globalIdField,
+  fromGlobalId,
+  nodeDefinitions,
   connectionDefinitions,
   connectionArgs,
   connectionFromPromisedArray,
@@ -17,22 +19,56 @@ import {
 } from 'graphql-relay';
 
 let Schema = (db) => {
+  class Store {}
+  let store = new Store();
 
-  //Limit functionality breaks when adding limit(arg.first) to Mongo call, so removing it for now
-  let store = {};
+  let nodeDefs = nodeDefinitions(
+    (globalId) => {
+      let {type} = fromGlobalId(globalId);
+      if (type === 'Store') {
+        return store;
+      }
+      return null;
+
+    },
+    (obj) => {
+      if (obj instanceof Store) {
+        return storeType;
+      }
+      return null;
+    }
+  );
+
   let storeType = new GraphQLObjectType({
     name: 'Store',
     fields: () => ({
       id: globalIdField("Store"),
       linkConnection: {
         type: linkConnection.connectionType,
-        args: connectionArgs,
-        resolve: (_, args) => connectionFromPromisedArray(
-          db.collection("links").find({}).toArray(),
-          args
-        )
+        args: {
+          ...connectionArgs,
+          titleQuery: { type: GraphQLString }
+        },
+        resolve: (_, args) => {
+          let findParams = {};
+          if (args.titleQuery) {
+            findParams.title = new RegExp(args.titleQuery, 'i');
+          }
+
+          /* Limit functionality breaks when adding 
+           * limit(arg.first) to Mongo call,
+           * so removing it for now */
+          return connectionFromPromisedArray(
+            db.collection("links")
+              .find(findParams)
+              .sort({createdAt: -1})
+              .toArray(),
+            args
+          );
+        }
       }
-    })
+    }),
+    interfaces: [nodeDefs.nodeInterface]
   });
 
   let linkType = new GraphQLObjectType({
@@ -43,7 +79,11 @@ let Schema = (db) => {
         resolve: (obj) => obj._id
       },
       title: { type: GraphQLString },
-      url: { type: GraphQLString }
+      url: { type: GraphQLString },
+      createdAt: {
+        type: GraphQLString,
+        resolve: (obj) => new Date(obj.createdAt).toISOString()
+      }
     })
   });
 
@@ -69,7 +109,11 @@ let Schema = (db) => {
       }
     },
     mutateAndGetPayload: ({title, url}) => {
-      return db.collection("links").insertOne({title, url});
+      return db.collection("links").insertOne({
+        title,
+        url,
+        createdAt: Date.now()
+      });
     }
   });
 
@@ -77,6 +121,7 @@ let Schema = (db) => {
     query: new GraphQLObjectType({
       name: 'Query',
       fields: () => ({
+        node: nodeDefs.nodeField,
         store: {
           type: storeType,
           resolve: () => store
